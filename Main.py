@@ -14,19 +14,15 @@ import Tools
 from Configs import redisConf
 import time
 from urllib import parse
-import threading
 
 r = redis.Redis(**redisConf)
 
 
-class MaoYan(threading.Thread):
+class MaoYan:
     # 初始化
-    def __init__(self, url, threadName):
-        threading.Thread.__init__(self,name=threadName)
+    def __init__(self):
         self.session = requests.session()
         self.baseUrl = 'https://maoyan.com/films'
-        self.url = url
-        self.threadName = threadName
 
         self.cookieStr = '__mta=154391175.1556502605615.1556503015453.1556503178118.17; _lxsdk_cuid=16a66c8707ac8-0b6232dccb4144-f353163-1fa400-16a66c8707bc8; uuid_n_v=v1; uuid=1BBD0BF06A2111E98B0F2DCDFDB75A6212E6095B655242F1890E79CAA3B08938; _lxsdk=1BBD0BF06A2111E98B0F2DCDFDB75A6212E6095B655242F1890E79CAA3B08938; _csrf=267f1faf04cc6915741e085e4af2e22d1609ac4fc1172d398002380ec492f0f6; lt=qpc-3tCI-Yz9jfUyUbh3zCj6l0oAAAAAUggAAGV4Q4IYFFX0T-A1eeselQc3tE2CjZaa-wVClwbPr-DqgHoF52AX5PIhP7uArgMY1Q; lt.sig=9VMp6Zrz1-OwKTTk_D_2X-WMk3Q; _lx_utm=utm_source%3DBaidu%26utm_medium%3Dorganic; __mta=154391175.1556502605615.1556503178118.1557128602109.18; _lxsdk_s=16a8c052e13-9b2-37f-284%7C%7C45'
 
@@ -49,7 +45,7 @@ class MaoYan(threading.Thread):
             screen = item.find('div', attrs={'class':'movie-ver'}).find('i').get('class')[0] if item.find('div', attrs={'class':'movie-ver'}).find('i') else ''
             # 猫眼电影ID
             movieid = item.find('a', attrs={"data-act":"movie-click"}).get('href').replace('/films/', '')
-
+            
             result = parse.urlparse(self.url)
             query_dict = parse.parse_qs(result.query)
 
@@ -86,12 +82,12 @@ class MaoYan(threading.Thread):
     def run(self, url = ''):
         # url='?showType=3&offset=2010' 经典影片
         # https://maoyan.com/films?showType=3&catId=3&offset=2010 爱情
-        self.url = self.baseUrl + self.url if not url else self.baseUrl + url
-        print(self.threadName + '获取网页：' + self.url)
+        self.url = self.baseUrl + url
+        print('获取网页：' + self.url)
 
         content = Tools.getHtmlContent(self.session, self.url)
         if not content:
-            print(self.threadName + '网页内容获取失败')
+            print('网页内容获取失败')
             return
 
         # 主动闭合标签避免结构异常
@@ -100,7 +96,7 @@ class MaoYan(threading.Thread):
         movieList = self.getMovieList(soup)
 
         for item in movieList:
-            print(self.threadName + "电影：{}，封面：{} \r\n评分：{}，类型：{}".format(
+            print("电影：{}，封面：{} \r\n评分：{}，类型：{}".format(
                 item['title'], item['cover'], item['grade'], item['screen']))
             print('----------------------------------------')
             r.lpush('maoyan_movie', json.dumps(item, ensure_ascii=False))
@@ -109,7 +105,7 @@ class MaoYan(threading.Thread):
 
         # 获取下一页链接
         nextPageUrl = self.getNextPageUrl(soup)
-        print(self.threadName + '下一页链接：' + nextPageUrl)
+        print('下一页链接：' + nextPageUrl)
 
         if nextPageUrl:
             Tools.dormancy(5, 10)
@@ -181,5 +177,6 @@ if __name__ == '__main__':
         '?showType=3&yearId=1',
     ]
     
-    for i in range(len(quelist)):
-        MaoYan(quelist[i], '线程T-%s  ' % i).start()
+    MaoYan = MaoYan()
+    for i in quelist:
+        MaoYan.run(i)

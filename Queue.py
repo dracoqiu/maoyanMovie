@@ -32,6 +32,7 @@ def storage(i, workQueue):
             cover = movieData['cover']
             grade = movieData['grade']
             screen = movieData['screen']
+            movieid = movieData['movieid']
         except Exception as e:
             print('get workQueue Err:' + str(e))
             continue
@@ -45,13 +46,14 @@ def storage(i, workQueue):
             dbresult = Tools.dbFind(db, findSql)
 
             if not dbresult:
-                insertSql = "INSERT INTO `maoyan_movies`(`title`, `cover`, `grade`, `screen`, `create_time`, `update_time`) VALUES ('{}', '{}', '{}', '{}', '{}', '{}')".format(
+                insertSql = "INSERT INTO `maoyan_movies`(`title`, `cover`, `grade`, `screen`, `create_time`, `update_time`, `movieid`) VALUES ('{}', '{}', '{}', '{}', '{}', '{}','{}')".format(
                     pymysql.escape_string(title),
                     cover,
                     0 if grade == '暂无评分' else grade,
                     screen,
                     thiTime,
-                    thiTime
+                    thiTime,
+                    movieid
                 )
                 result = Tools.dbInsert(db, insertSql)
                 if result:
@@ -59,12 +61,13 @@ def storage(i, workQueue):
                 else:
                     print('线程-%s 电影：%s 入库失败\r\n' % (thredname, title))
             else:
-                updateSql = "UPDATE `maoyan_movies` SET `title`='{}',`cover`='{}',`grade`='{}',`screen`='{}',`update_time`='{}' WHERE `id`={}".format(
+                updateSql = "UPDATE `maoyan_movies` SET `title`='{}',`cover`='{}',`grade`='{}',`screen`='{}',`update_time`='{}',`movieid`='{}' WHERE `id`={}".format(
                     pymysql.escape_string(title),
                     cover,
                     0 if grade == '暂无评分' else grade,
                     screen,
                     thiTime,
+                    movieid,
                     dbresult['id']
                 )
                 result = Tools.dbUpdate(db, updateSql)
@@ -86,7 +89,7 @@ if __name__ == '__main__':
     workQueue = queue.Queue()
 
     # 启动线程
-    for i in range(6):
+    for i in range(100):
         threads = threading.Thread(target=storage, args=(i, workQueue))
         threads.setDaemon(True)
         threads.start()

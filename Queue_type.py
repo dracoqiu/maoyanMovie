@@ -113,7 +113,7 @@ if __name__ == '__main__':
     workQueue = queue.Queue()
 
     # 启动线程
-    for i in range(3):
+    for i in range(300):
         threads = threading.Thread(target=storage, args=(i, workQueue))
         threads.setDaemon(True)
         threads.start()
@@ -133,12 +133,12 @@ if __name__ == '__main__':
             workQueue.put(tmpdata)
             time.sleep(0.1)
 
-            tnum = tnum + 1
-            if tnum == 100:
-                tnum = 0
-                print('每100条休眠10秒')
-                time.sleep(10)
-                continue
+            # tnum = tnum + 1
+            # if tnum == 100:
+            #     tnum = 0
+            #     print('每100条休眠10秒')
+            #     time.sleep(10)
+            #     continue
         except Exception as e:
             print('获取数据错误：' + str(e))
             continue
