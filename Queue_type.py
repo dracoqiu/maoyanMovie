@@ -113,7 +113,7 @@ if __name__ == '__main__':
     workQueue = queue.Queue()
 
     # 启动线程
-    for i in range(300):
+    for i in range(100):
         threads = threading.Thread(target=storage, args=(i, workQueue))
         threads.setDaemon(True)
         threads.start()
