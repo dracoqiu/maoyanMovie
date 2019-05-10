@@ -45,7 +45,7 @@ class MaoYan:
             screen = item.find('div', attrs={'class':'movie-ver'}).find('i').get('class')[0] if item.find('div', attrs={'class':'movie-ver'}).find('i') else ''
             # 猫眼电影ID
             movieid = item.find('a', attrs={"data-act":"movie-click"}).get('href').replace('/films/', '')
-            
+
             result = parse.urlparse(self.url)
             query_dict = parse.parse_qs(result.query)
 
@@ -176,7 +176,7 @@ if __name__ == '__main__':
         '?showType=3&yearId=2',
         '?showType=3&yearId=1',
     ]
-    
+
     MaoYan = MaoYan()
     for i in quelist:
         MaoYan.run(i)
